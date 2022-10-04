@@ -1,5 +1,6 @@
-import csv
 import math
+
+import matplotlib.pyplot
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -57,17 +58,20 @@ def csvToMatrix(csv):
     newMatrix = []
     csvData = open(csv)
     matrix = np.loadtxt(csvData, delimiter=";")
-    matrixCartesien = []  # Matrice de conversion
 
+    matrixCartesien = []  # Matrice de conversion
+    xScatter = []
+    yScatter = []
     # Conversion des coordonnées polaires en cartésiennes
     for row in matrix:
         matrixCartesien.append(polaire_to_cartesien(row[1], row[0]))
 
-    NEEDED = 2000
-    CASE = 4
+
+    NEEDED = 1500
+    CASE = 10
     STEP = NEEDED / CASE
-    MIN = -2000
-    MAX = 2000
+    MIN = -1500
+    MAX = 1500
 
     # On remplit la matrice de retour avec des 0
     for i in range(CASE):  # Axe des Y
@@ -79,13 +83,17 @@ def csvToMatrix(csv):
         x = row[0] + MAX
         y = row[1] + MAX
         if 0 < x < MAX and MIN < y < MAX:
+            xScatter.append(y)
+            yScatter.append(math.radians(x))
             newMatrix[int(x / STEP)][int(y / STEP)] = 1.
 
-    return newMatrix
+    matplotlib.pyplot.scatter(xScatter, yScatter)
+    return np.matrix(newMatrix)
+
 
 def polaire_to_cartesien(r, theta):
-    x = r * np.cos(theta)
-    y = r * np.sin(theta)
+    x = r * np.cos(math.radians(theta))
+    y = r * np.sin(math.radians(theta))
     return (x, y)
 
 
@@ -200,6 +208,7 @@ def displayMatrix(mat):
     plt.matshow(mat)
     plt.show()
 
+
 def displayPath(mat, path):
     if path != None:
         for (y, x) in path:
@@ -211,8 +220,8 @@ def displayPath(mat, path):
 newMatrix = csvToMatrix("data0.csv")
 displayMatrix(newMatrix)
 maze = np.asarray(newMatrix)
-start = (0,0)
-end = (3,3)
+start = (0, 0)
+end = (0, 1)
 
 path = astar(maze, start, end)
 displayPath(newMatrix, path)
