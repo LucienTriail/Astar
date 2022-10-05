@@ -31,6 +31,10 @@ matrix = np.matrix([
     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
 """
 
+MAX = 3000
+CASE = 10
+STEP = MAX / CASE
+
 
 class Node:
     def __init__(self, parent=None, position=None):
@@ -67,10 +71,6 @@ def csvToMatrix(csv):
     # Conversion des coordonnées polaires en cartésiennes
     for row in matrix:
         matrixCartesien.append(polaire_to_cartesien(row[1], row[0]))
-
-    MAX = 3000
-    CASE = 10
-    STEP = MAX / CASE
 
     # On remplit la matrice de retour avec des 0
     for i in range(CASE):  # Axe des Y
