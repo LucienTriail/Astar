@@ -118,6 +118,11 @@ def astar(maze, start, end):
         [0, -1],  # left
         [1, 0],  # down
         [0, 1],  # right
+        # Diagonal movement - this is sqrt(2) more expensive than orthogonal movement
+        # [-1, -1],  # right
+        # [-1, 1],  # right
+        # [1, 1],  # right
+        # [-1, 0],  # right
     ]
 
     no_rows, no_columns = np.shape(maze)
@@ -221,8 +226,8 @@ def displayPath(mat, path):
 newMatrix = csvToMatrix("data0.csv")
 displayMatrix(newMatrix)
 maze = np.asarray(newMatrix)
-start = (4,0)  # Start du milieu de la première colonne
-end = (4,9)  # End max column et 1ere ligne
+start = (int(CASE / 2), 0)  # Start du milieu de la première colonne
+end = (int(CASE / 2), CASE - 1)  # End max column et 1ere ligne
 
 path = astar(maze, start, end)
 displayPath(newMatrix, path)
