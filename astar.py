@@ -4,6 +4,7 @@ import matplotlib.pyplot
 import numpy as np
 import matplotlib.pyplot as plt
 
+"""
 start = (0, 3)
 end = (19, 20)
 matrix = np.matrix([
@@ -28,6 +29,7 @@ matrix = np.matrix([
     [1., 0., 1., 0., 1., 0., 1., 0., 1., 1., 1., 1., 1., 1., 1., 0., 1., 0., 1., 1., 1.],
     [1., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0.],
     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
+"""
 
 
 class Node:
@@ -66,12 +68,9 @@ def csvToMatrix(csv):
     for row in matrix:
         matrixCartesien.append(polaire_to_cartesien(row[1], row[0]))
 
-
-    NEEDED = 1500
+    MAX = 3000
     CASE = 10
-    STEP = NEEDED / CASE
-    MIN = -1500
-    MAX = 1500
+    STEP = MAX / CASE
 
     # On remplit la matrice de retour avec des 0
     for i in range(CASE):  # Axe des Y
@@ -79,13 +78,13 @@ def csvToMatrix(csv):
         for j in range(CASE):  # Axe X
             newMatrix[i].append(0.)
 
-    for key, row in enumerate(matrixCartesien):
-        x = row[0] + MAX
-        y = row[1] + MAX
-        if 0 < x < MAX and MIN < y < MAX:
-            xScatter.append(y)
-            yScatter.append(math.radians(x))
-            newMatrix[int(x / STEP)][int(y / STEP)] = 1.
+    for row in matrixCartesien:
+        x = -row[0]
+        y = row[1] + (MAX / 2)
+        if 0 < x < MAX and 0 < y < MAX:
+            xScatter.append(x)
+            yScatter.append(y)
+            newMatrix[int(y / STEP)][int(x / STEP) + 1] = 1.
 
     matplotlib.pyplot.scatter(xScatter, yScatter)
     return np.matrix(newMatrix)
@@ -94,7 +93,7 @@ def csvToMatrix(csv):
 def polaire_to_cartesien(r, theta):
     x = r * np.cos(math.radians(theta))
     y = r * np.sin(math.radians(theta))
-    return (x, y)
+    return x, y
 
 
 def astar(maze, start, end):
@@ -146,8 +145,7 @@ def astar(maze, start, end):
                 good_positions.append(current_node.position)
                 current_node = current_node.parent
             good_positions.append(start_node.position)
-            good_positions = good_positions[::-1]
-            return good_positions
+            return good_positions[::-1]
 
         # Generate children from all adjacent squares
         children = []
@@ -167,8 +165,9 @@ def astar(maze, start, end):
 
         # Loop through children
         for child in children:
-            if len([visited_child for visited_child in visited_list if visited_child == child]) > 0:
-                continue
+            for closed_child in visited_list:
+                if child == closed_child:
+                    continue
 
             child.g = current_node.g + 1
             child.h = (((child.position[0] - end_node.position[0]) ** 2) +
@@ -176,8 +175,10 @@ def astar(maze, start, end):
 
             child.f = child.g + child.h
 
-            if len([i for i in yet_to_visit_list if child == i and child.g > i.g]) > 0:
-                continue
+            for open_node in yet_to_visit_list:
+                if len([i for i in yet_to_visit_list if child == i and child.g > i.g]) > 0:
+                    if child == open_node and child.g > open_node.g:
+                        continue
 
             yet_to_visit_list.append(child)
 
@@ -210,9 +211,9 @@ def displayMatrix(mat):
 
 
 def displayPath(mat, path):
-    if path != None:
+    if path is not None:
         for (y, x) in path:
-            mat[x, y] = math.inf
+            mat[y, x] = math.inf
     plt.matshow(mat)
     plt.show()
 
@@ -220,8 +221,8 @@ def displayPath(mat, path):
 newMatrix = csvToMatrix("data0.csv")
 displayMatrix(newMatrix)
 maze = np.asarray(newMatrix)
-start = (0, 0)
-end = (0, 1)
+start = (4,0)  # Start du milieu de la première colonne
+end = (4,9)  # End max column et 1ere ligne
 
 path = astar(maze, start, end)
 displayPath(newMatrix, path)
