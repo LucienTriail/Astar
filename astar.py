@@ -1,8 +1,9 @@
 import math
-
-import matplotlib.pyplot
+# import matplotlib.pyplot
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+# from robot  import *
+from robot import moveDevice
 
 """
 start = (0, 3)
@@ -69,8 +70,14 @@ def csvToMatrix(csv):
     xScatter = []
     yScatter = []
     # Conversion des coordonnées polaires en cartésiennes
+
     for row in matrix:
         matrixCartesien.append(polaire_to_cartesien(row[1], row[0]))
+
+    for row in matrixCartesien:
+        x1 = round(float(row[1]))
+        y1 = round(float(row[1]))
+
 
     # On remplit la matrice de retour avec des 0
     for i in range(CASE):  # Axe des Y
@@ -78,21 +85,35 @@ def csvToMatrix(csv):
         for j in range(CASE):  # Axe X
             newMatrix[i].append(0.)
 
+
     for row in matrixCartesien:
-        x = -row[0]
-        y = row[1] + (MAX / 2)
-        if 0 < x < MAX and 0 < y < MAX:
+        x1 = round(float(row[0]))
+        y1 = round(float(row[1]))
+        # print(x1, y1)
+        x = int(x1)
+        y = round(float(y1 + (MAX / 2)))
+        # print(x, y)
+        # print('BEGIN')
+        y_coord = int(y / STEP)
+        x_coord = int(x / STEP)
+        print(x_coord, y_coord)
+        # print('END')
+
+        if 0 < x < MAX and y < MAX:
             xScatter.append(x)
             yScatter.append(y)
-            newMatrix[int(y / STEP)][int(x / STEP) + 1] = 1.
+            newMatrix[x_coord + 1][y_coord] = 1.
 
-    matplotlib.pyplot.scatter(xScatter, yScatter)
+    print('Matrice newMatrix')
+    print(newMatrix)
+
+    # matplotlib.pyplot.scatter(xScatter, yScatter)
     return np.matrix(newMatrix)
 
 
 def polaire_to_cartesien(r, theta):
     x = r * np.cos(math.radians(theta))
-    y = r * np.sin(math.radians(theta))
+    y = r * np.sin(math.radians(theta)) + 1500
     return x, y
 
 
@@ -138,8 +159,8 @@ def astar(maze, start, end):
                 current_node = item
                 current_index = index
 
-        if outer_iterations > max_iterations:
-            return displayPath(maze, current_node)
+        # if outer_iterations > max_iterations:
+        #     return displayPath(maze, current_node)
 
         yet_to_visit_list.pop(current_index)
         visited_list.append(current_node)
@@ -210,25 +231,51 @@ def verify(maze, start, end, path):
     return True
 
 
-def displayMatrix(mat):
-    plt.matshow(mat)
-    plt.show()
+
+def get_lidar_data(matrix):
+
+    print('path')
+    newMatrix = []
+    matrixCartesien = []  # Matrice de conversion
+    xScatter = []
+    yScatter = []
+
+    # Conversion des coordonnées polaires en cartésiennes
+    for row in matrix:
+        matrixCartesien.append(polaire_to_cartesien(row[1], row[0]))
+
+    for i in range(CASE):  # Axe des Y
+        newMatrix.append([])
+        for j in range(CASE):  # Axe X
+            newMatrix[i].append(0.)
+
+    npArray = np.array(newMatrix)
+    print('NEw')
+    print(npArray.shape)
 
 
-def displayPath(mat, path):
-    if path is not None:
-        for (y, x) in path:
-            mat[y, x] = math.inf
-    plt.matshow(mat)
-    plt.show()
+    for row in matrixCartesien:
+        y1 = round(float(row[0]))
+        x1 = round(float(row[1]))
+        # print(x1, y1)
+        x = int(x1)
+        y = int(y1)
+        y_coord = int(y / STEP)
+        x_coord = int(x / STEP)
 
+        newArray = []
+        newArray.append([x_coord, y_coord])
 
-newMatrix = csvToMatrix("data0.csv")
-displayMatrix(newMatrix)
-maze = np.asarray(newMatrix)
-start = (int(CASE / 2), 0)  # Start du milieu de la première colonne
-end = (int(CASE / 2), CASE - 1)  # End max column et 1ere ligne
+        if 0 < x_coord < npArray.shape[0] and 0 < y_coord < npArray.shape[1]:
+            xScatter.append(x_coord)
+            yScatter.append(y_coord)
+            newMatrix[y_coord][x_coord] = 1.
 
-path = astar(maze, start, end)
-displayPath(newMatrix, path)
-print(verify(maze, start, end, path))
+    newMatrix02 = np.matrix(newMatrix)
+    maze = np.asarray(newMatrix02)
+
+    start = (int(CASE / 2) + 1, 0)  # Start du milieu de la première colonne
+    end = (int(CASE / 2), CASE - 1)  # End max column et 1ere ligne
+    path = astar(maze, start, end)
+
+    return maze, path,  start, end
